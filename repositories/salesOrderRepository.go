@@ -4,12 +4,23 @@ import (
 	"errors"
 	"sales-order-golangGin/config"
 	"sales-order-golangGin/models"
+
+	"github.com/google/uuid"
 )
 
 type SalesOrderRepository struct{}
 
+
+
 func (r *SalesOrderRepository) CreateSalesOrder(order *models.SalesOrder) error {
 	db := config.DB
+
+	order.Id_Order = uuid.New().String()
+
+	for i := range order.Items {
+		order.Items[i].Id_Item = uuid.New().String() 
+		order.Items[i].Id_Order = order.Id_Order
+	}
 
 	tx := db.Begin()
 	defer func() {
@@ -21,14 +32,6 @@ func (r *SalesOrderRepository) CreateSalesOrder(order *models.SalesOrder) error 
 	if err := tx.Create(&order).Error; err != nil {
 		tx.Rollback()
 		return err
-	}
-
-	for i := range order.Items {
-		order.Items[i].Id_Order = order.Id_Order
-		if err := tx.Create(&order.Items[i]).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
 	}
 
 	return tx.Commit().Error
@@ -101,6 +104,11 @@ func (r *SalesOrderRepository) DeleteSalesOrder(id string) error {
 			tx.Rollback()
 		}
 	}()
+
+	if err := tx.Where("id_order = ?", id).Delete(&models.SalesOrder{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
 
 	if err := tx.Where("id_order = ?", id).Delete(&models.ItemOrder{}).Error; err != nil {
 		tx.Rollback()
