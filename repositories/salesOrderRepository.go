@@ -47,12 +47,14 @@ func (r *SalesOrderRepository) GetSalesOrders(page, limit int) ([]models.SalesOr
 	}
 
 	offset := (page - 1) * limit
-	if err := db.Preload("Items").Offset(offset).Limit(limit).Find(&orders).Error; err != nil {
+
+	if err := db.Offset(offset).Limit(limit).Find(&orders).Error; err != nil {
 		return nil, 0, err
 	}
 
 	return orders, count, nil
 }
+
 
 func (r *SalesOrderRepository) GetSalesOrderById(id string) (*models.SalesOrder, error) {
 	db := config.DB 

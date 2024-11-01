@@ -2,19 +2,18 @@ package controllers
 
 import (
 	"net/http"
+    "strconv" 
+	"github.com/gin-gonic/gin"
+
 	"sales-order-golangGin/models"
 	"sales-order-golangGin/repositories"
 
-	"github.com/gin-gonic/gin"
 )
 
 type SalesOrderController struct {
 	repo *repositories.SalesOrderRepository
 }
 
-func NewSalesOrderController(repo *repositories.SalesOrderRepository) *SalesOrderController {
-	return &SalesOrderController{repo: repo}
-}
 
 func (c *SalesOrderController) CreateSalesOrder(ctx *gin.Context) {
 	var order models.SalesOrder
@@ -30,16 +29,28 @@ func (c *SalesOrderController) CreateSalesOrder(ctx *gin.Context) {
 }
 
 func (c *SalesOrderController) GetSalesOrders(ctx *gin.Context) {
+	// Set nilai default untuk page dan limit
 	page := 1
-	limit := 10 
+	limit := 5
 
+	// Ambil dan parsing query parameter 'page'
 	if p := ctx.Query("page"); p != "" {
-		// Parse page query parameter
-		// (Implement parsing and error handling)
+		if parsedPage, err := strconv.Atoi(p); err == nil && parsedPage > 0 {
+			page = parsedPage
+		} else {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page parameter"})
+			return
+		}
 	}
+
+	// Ambil dan parsing query parameter 'limit'
 	if l := ctx.Query("limit"); l != "" {
-		// Parse limit query parameter
-		// (Implement parsing and error handling)
+		if parsedLimit, err := strconv.Atoi(l); err == nil && parsedLimit > 0 {
+			limit = parsedLimit
+		} else {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit parameter"})
+			return
+		}
 	}
 
 	orders, count, err := c.repo.GetSalesOrders(page, limit)
@@ -48,8 +59,19 @@ func (c *SalesOrderController) GetSalesOrders(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Sales orders retrieved successfully","status": true,"data": orders,"total": count})
+	totalPage := int((count + int64(limit) - 1) / int64(limit))
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message":     "Sales orders retrieved successfully",
+		"status":      true,
+		"data":        orders,
+		"currentPage": page,
+		"totalPage":   totalPage,
+		"limit":       limit,
+		"count":       count,
+	})
 }
+
 
 func (c *SalesOrderController) GetSalesOrderById(ctx *gin.Context) {
 	id := ctx.Param("id")
