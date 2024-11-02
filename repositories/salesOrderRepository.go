@@ -2,15 +2,15 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"sales-order-golangGin/config"
 	"sales-order-golangGin/models"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 type SalesOrderRepository struct{}
-
-
 
 func (r *SalesOrderRepository) CreateSalesOrder(order *models.SalesOrder) error {
 	db := config.DB
@@ -18,7 +18,7 @@ func (r *SalesOrderRepository) CreateSalesOrder(order *models.SalesOrder) error 
 	order.Id_Order = uuid.New().String()
 
 	for i := range order.Items {
-		order.Items[i].Id_Item = uuid.New().String() 
+		order.Items[i].Id_Item = uuid.New().String()
 		order.Items[i].Id_Order = order.Id_Order
 	}
 
@@ -38,7 +38,7 @@ func (r *SalesOrderRepository) CreateSalesOrder(order *models.SalesOrder) error 
 }
 
 func (r *SalesOrderRepository) GetSalesOrders(page, limit int) ([]models.SalesOrder, int64, error) {
-	db := config.DB 
+	db := config.DB
 	var orders []models.SalesOrder
 	var count int64
 
@@ -55,9 +55,8 @@ func (r *SalesOrderRepository) GetSalesOrders(page, limit int) ([]models.SalesOr
 	return orders, count, nil
 }
 
-
 func (r *SalesOrderRepository) GetSalesOrderById(id string) (*models.SalesOrder, error) {
-	db := config.DB 
+	db := config.DB
 	var order models.SalesOrder
 
 	if err := db.Preload("Items").First(&order, "id_order = ?", id).Error; err != nil {
@@ -67,7 +66,7 @@ func (r *SalesOrderRepository) GetSalesOrderById(id string) (*models.SalesOrder,
 }
 
 func (r *SalesOrderRepository) UpdateSalesOrder(id string, updatedOrder *models.SalesOrder) error {
-	db := config.DB 
+	db := config.DB
 
 	tx := db.Begin()
 	defer func() {
@@ -118,4 +117,40 @@ func (r *SalesOrderRepository) DeleteSalesOrder(id string) error {
 	}
 
 	return tx.Commit().Error
+}
+
+// Method to count the total filtered sales orders
+func (r *SalesOrderRepository) GetSearchSalesOrderCount(keywords string, date *time.Time) (int, error) {
+	db := config.DB
+	var count int64
+	fmt.Println("Keywords:", keywords)
+	fmt.Println("date:", date)
+
+	query := db.Model(&models.SalesOrder{})
+	if keywords != "" {
+		query = query.Where("number_order LIKE ? OR customer LIKE ?", "%"+keywords+"%", "%"+keywords+"%")
+	}
+	if date != nil {
+		query = query.Where("DATE(date) = ?", date.Format("2006-01-02"))
+	}
+
+	err := query.Count(&count).Error
+	return int(count), err
+}
+
+// Method to fetch filtered sales orders
+func (r *SalesOrderRepository) SearchSalesOrders(keywords string, date *time.Time, page int, limit int) ([]models.SalesOrder, error) {
+	db := config.DB
+	var orders []models.SalesOrder
+
+	query := db.Model(&models.SalesOrder{}).Order("date DESC").Offset((page - 1) * limit).Limit(limit)
+	if keywords != "" {
+		query = query.Where("number_order LIKE ? OR customer LIKE ?", "%"+keywords+"%", "%"+keywords+"%")
+	}
+	if date != nil {
+		query = query.Where("DATE(date) = ?", date.Format("2006-01-02"))
+	}
+
+	err := query.Find(&orders).Error
+	return orders, err
 }

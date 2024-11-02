@@ -12,6 +12,7 @@ func RegisterRoutes(router *gin.Engine, salesOrderController *controllers.SalesO
 		api.POST("/salesorder", salesOrderController.CreateSalesOrder)
 		api.GET("/salesorder", salesOrderController.GetSalesOrders)
 		api.GET("/salesorder/:id", salesOrderController.GetSalesOrderById)
+		api.GET("/salesorder/search", salesOrderController.SearchSalesOrders)
 		api.PUT("/salesorder/:id", salesOrderController.UpdateSalesOrder)
 		api.DELETE("/salesorder/:id", salesOrderController.DeleteSalesOrder)
 	}
