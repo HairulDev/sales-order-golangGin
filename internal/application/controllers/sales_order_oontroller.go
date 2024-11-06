@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"sales-order-golangGin/models"
-	"sales-order-golangGin/repositories"
+	"sales-order-golangGin/internal/application/models"
+	"sales-order-golangGin/internal/application/repositories"
 )
 
 type SalesOrderController struct {

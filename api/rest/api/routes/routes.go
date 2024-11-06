@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"sales-order-golangGin/controllers"
+	"sales-order-golangGin/internal/application/controllers"
 
 	"github.com/gin-gonic/gin"
 )

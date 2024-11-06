@@ -1,5 +1,5 @@
 // config/database.go
-package config
+package configs
 
 import (
 	"log"

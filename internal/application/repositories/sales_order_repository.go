@@ -3,8 +3,8 @@ package repositories
 import (
 	"errors"
 	"fmt"
-	"sales-order-golangGin/config"
-	"sales-order-golangGin/models"
+	"sales-order-golangGin/internal/application/models"
+	"sales-order-golangGin/internal/pkg/database/sql/configs"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,7 +13,7 @@ import (
 type SalesOrderRepository struct{}
 
 func (r *SalesOrderRepository) CreateSalesOrder(order *models.SalesOrder) error {
-	db := config.DB
+	db := configs.DB
 
 	order.Id_Order = uuid.New().String()
 
@@ -38,7 +38,7 @@ func (r *SalesOrderRepository) CreateSalesOrder(order *models.SalesOrder) error 
 }
 
 func (r *SalesOrderRepository) GetSalesOrders(page, limit int) ([]models.SalesOrder, int64, error) {
-	db := config.DB
+	db := configs.DB
 	var orders []models.SalesOrder
 	var count int64
 
@@ -56,7 +56,7 @@ func (r *SalesOrderRepository) GetSalesOrders(page, limit int) ([]models.SalesOr
 }
 
 func (r *SalesOrderRepository) GetSalesOrderById(id string) (*models.SalesOrder, error) {
-	db := config.DB
+	db := configs.DB
 	var order models.SalesOrder
 
 	if err := db.Preload("Items").First(&order, "id_order = ?", id).Error; err != nil {
@@ -66,7 +66,7 @@ func (r *SalesOrderRepository) GetSalesOrderById(id string) (*models.SalesOrder,
 }
 
 func (r *SalesOrderRepository) UpdateSalesOrder(id string, updatedOrder *models.SalesOrder) error {
-	db := config.DB
+	db := configs.DB
 
 	tx := db.Begin()
 	defer func() {
@@ -97,7 +97,7 @@ func (r *SalesOrderRepository) UpdateSalesOrder(id string, updatedOrder *models.
 }
 
 func (r *SalesOrderRepository) DeleteSalesOrder(id string) error {
-	db := config.DB
+	db := configs.DB
 
 	tx := db.Begin()
 	defer func() {
@@ -121,7 +121,7 @@ func (r *SalesOrderRepository) DeleteSalesOrder(id string) error {
 
 // Method to count the total filtered sales orders
 func (r *SalesOrderRepository) GetSearchSalesOrderCount(keywords string, date *time.Time) (int, error) {
-	db := config.DB
+	db := configs.DB
 	var count int64
 	fmt.Println("Keywords:", keywords)
 	fmt.Println("date:", date)
@@ -140,7 +140,7 @@ func (r *SalesOrderRepository) GetSearchSalesOrderCount(keywords string, date *t
 
 // Method to fetch filtered sales orders
 func (r *SalesOrderRepository) SearchSalesOrders(keywords string, date *time.Time, page int, limit int) ([]models.SalesOrder, error) {
-	db := config.DB
+	db := configs.DB
 	var orders []models.SalesOrder
 
 	query := db.Model(&models.SalesOrder{}).Order("date DESC").Offset((page - 1) * limit).Limit(limit)
