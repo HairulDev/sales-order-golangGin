@@ -11,6 +11,7 @@ import (
 	"sales-order-golangGin/internal/application/repositories"
 )
 
+// Paradigma Prosedural
 type SalesOrderController struct {
 	repo *repositories.SalesOrderRepository
 }
